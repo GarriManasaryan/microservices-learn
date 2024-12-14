@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: m1
+
+  datasource:
+    url: jdbc:postgresql://db_capitalize_host:5434/db_capitalize
+#    url: jdbc:postgresql://localhost:5433/db_microservices
+    username: postgres
+    password: 1
+
+    flyway:
+      baselineOnMigrate: true
+
+## важно в конце добавлять, а не по середине - в середине мы обрываем spring конфиг
+#server:
+#  port: 8082

@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: m1
+
+  datasource:
+    url: jdbc:postgresql://db_upper_host:5433/db_upper
+#    url: jdbc:postgresql://localhost:5433/db_microservices
+    username: postgres
+    password: 1
+
+    flyway:
+      baselineOnMigrate: true
+

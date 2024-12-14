@@ -1,0 +1,208 @@
+services:
+
+  # microservice 3
+  db-lower:
+    image: postgres:14.5
+    container_name: db_lower
+    hostname: db_lower_host
+    environment:
+      - POSTGRES_PASSWORD=1
+      - POSTGRES_USER=postgres
+    depends_on:
+      - opentelemetry-collector
+    volumes:
+      - pg_lower:/var/lib/postgresql/data
+
+    expose:
+      - "5435"
+    ports:
+      - "5435:5435"
+    command: -p 5435
+    networks:
+      - my-net
+
+  backend-lower:
+    hostname: backend-lower
+    depends_on:
+      - db-lower
+      - opentelemetry-collector
+    build:
+      dockerfile: Dockerfile_lower.bk
+
+    environment:
+      OTEL_SERVICE_NAME: "lower-app"
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://opentelemetry-collector:4318/v1/traces"
+      OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://opentelemetry-collector:4318/v1/metrics"
+      OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: "http://opentelemetry-collector:4318/v1/logs"
+      # Logs are disabled by default
+      OTEL_LOGS_EXPORTER: "otlp"
+      # Optional specify file configuration instead of using environment variable scheme
+      # To use, call "export OTEL_EXPERIMENTAL_CONFIG_FILE=/sdk-config.yaml" before calling docker compose up
+      OTEL_EXPERIMENTAL_CONFIG_FILE:
+      OTEL_EXPORTER_OTLP_TIMEOUT: "5s"       # Increases the timeout for each request
+      OTEL_EXPORTER_OTLP_SPAN_TIMEOUT: "5s"  # Sets span-specific timeout
+
+    networks:
+      - my-net
+    ports:
+      - "8083:8080"
+
+  # opentelemetry-collector:
+  #   hostname: opentelemetry-collector
+  #   depends_on:
+  #     - zipkin
+  #   image: otel/opentelemetry-collector-contrib:0.109.0
+  #   volumes:
+  #     - ./collector-spring-native-config.yml:/collector-spring-native-config.yml
+  #   command: ['--config=/collector-spring-native-config.yml']
+  #   expose:
+  #     - '4318'
+  #   ports:
+  #     - "4318:4318"   # OTLP gRPC receiver
+  #   networks:
+  #     - my-net
+
+  opentelemetry-collector:
+    hostname: opentelemetry-collector
+    image: otel/opentelemetry-collector:0.72.0
+    volumes:
+      - ./collector-spring-native-config.yml:/collector-spring-native-config.yml
+    command: ['--config=/collector-spring-native-config.yml']
+    expose:
+      - '4317'
+      - '4318'
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # Http
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter metrics
+    networks:
+      - my-net
+
+  prometheus:
+    hostname: prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"  # Prometheus UI
+    networks:
+      - my-net
+    depends_on:
+      - opentelemetry-collector
+
+  # # jaeger opentelemtry не поддерживает?
+  # jaeger:
+  #   hostname: jaeger
+  #   image: jaegertracing/all-in-one:latest
+  #   ports:
+  #     - "4317:4317"
+  #   networks:
+  #     - my-net
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #   volumes:
+  #     - grafana-storage:/var/lib/grafana
+  #   networks:
+  #     - my-net
+
+  # Zipkin
+  zipkin:
+    hostname: zipkin  
+    image: openzipkin/zipkin:latest
+    environment:
+      - JAVA_OPTS=-Xms1024m -Xmx1024m -XX:+ExitOnOutOfMemoryError
+    ports:
+      - "9411:9411"
+    networks:
+      - my-net
+
+  # # microservice 2
+  # db-capitalize:
+  #   image: postgres:14.5
+  #   container_name: db_capitalize
+  #   hostname: db_capitalize_host
+  #   environment:
+  #     - POSTGRES_PASSWORD=1
+  #     - POSTGRES_USER=postgres
+  #   volumes:
+  #     - pg_capitalize:/var/lib/postgresql/data
+  #   expose:
+  #     - "5434"
+  #   ports:
+  #     - "5434:5434"
+  #   command: -p 5434
+  #   networks:
+  #     - my-net
+
+  # backend-capitalize:
+  #   hostname: backend-capitalize
+  #   depends_on:
+  #     - db-capitalize
+  #   build:
+  #     dockerfile: Dockerfile_capitalize.bk
+  #   networks:
+  #     - my-net
+  #   ports:
+  #     - "8082:8080"
+
+  # # microservice 1
+  # db-upper:
+  #   image: postgres:14.5
+  #   container_name: db_upper
+  #   hostname: db_upper_host
+  #   environment:
+  #     - POSTGRES_PASSWORD=1
+  #     - POSTGRES_USER=postgres
+
+  #   volumes:
+  #     - pg_upper:/var/lib/postgresql/data
+
+  #   expose:
+  #     - "5433"
+  #   ports:
+  #     - "5433:5433"
+  #   command: -p 5433
+  #   networks:
+  #     - my-net
+
+  # backend-upper:
+  #   hostname: backend-upper
+  #   depends_on:
+  #     - db-upper
+  #   build:
+  #     dockerfile: Dockerfile_upper.bk
+  #   ports:
+  #     - "8081:8080"
+  #   networks:
+  #     - my-net
+
+  # frontend:
+  #   depends_on:
+  #     - backend
+
+  #   build:
+  #     dockerfile: Dockerfile.fk
+  #   ports:
+  #     - "3000:3000"
+
+  #   stdin_open: true
+  #   tty: true
+  #   networks:
+  #     - my-net
+
+volumes:
+  pg_upper:
+  pg_capitalize:
+  pg_lower:
+  grafana-storage:
+  prom:
+
+networks:
+  my-net:
+    driver: bridge

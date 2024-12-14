@@ -1,0 +1,15 @@
+FROM bellsoft/liberica-openjdk-debian:21
+
+# скопировать все файлы из локальной машины в app
+COPY lower/build/output-docker/lower.jar /app/
+
+# COPY opentelemetry-javaagent.jar /app/
+
+# задать рабоч директорию
+WORKDIR /app
+
+# no code config?
+# ENTRYPOINT ["java", "-javaagent:opentelemetry-javaagent.jar","-Dotel.service.name=lower-app", "-jar", "lower.jar"]
+ENTRYPOINT ["java", "-jar" ,"lower.jar"]
+
+# ENTRYPOINT ["java", "-Dotel.traces.exporter=zipkin", "-Dotel.metrics.exporter=none", "-Dotel.exporter.zipkin.endpoint=http://localhost:9411/api/v2/spans", "-jar" ,"lower.jar"]

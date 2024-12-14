@@ -1,0 +1,145 @@
+# # Receive signals over gRPC and HTTP
+# receivers:
+#   otlp:
+#     protocols:
+#       grpc:
+#       http:
+
+# # Establish an endpoint for zipkin to scrape from
+# exporters:
+#   zipkin:
+#     endpoint: "localhost:9411"
+#     tls:
+#       insecure: true
+
+# service:
+#   pipelines:
+#     traces:
+#       receivers: [otlp]
+#       exporters: [zipkin]
+
+
+# настройка только для принта в докере, без экспортера
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+
+exporters:
+  # logging:
+  #   loglevel: debug
+
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+  zipkin:
+    endpoint: "http://zipkin:9411/api/v2/spans"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [zipkin]
+    # logs:
+    #   receivers: [otlp]
+    #   exporters: [logging]
+    metrics:
+      receivers: [otlp]
+      exporters: [prometheus]
+
+
+# # настройка только для принта в докере, без экспортера
+# receivers:
+#   otlp:
+#     protocols:
+#       grpc:
+#       http:
+
+
+# exporters:
+#   logging:
+#     loglevel: debug
+    
+# service:
+#   pipelines:
+#     traces:
+#       receivers: [otlp]
+#       exporters: [logging]
+#     logs:
+#       receivers: [otlp]
+#       exporters: [logging]
+#     metrics:
+#       receivers: [otlp]
+#       exporters: [logging]
+
+
+
+
+# # ++ working ++
+# receivers:
+#   otlp:
+#     protocols:
+#       grpc:
+#       http:
+
+# processors:
+#   batch:
+
+# exporters:
+#   logging:
+#     loglevel: debug
+#   zipkin:
+#     endpoint: http://zipkin:9411
+#     tls:
+#       insecure: true
+
+# service:
+#   pipelines:
+#     traces:
+#       receivers:  [ otlp ]
+#       processors: [ batch ]
+#       exporters:  [ logging, zipkin ]
+
+
+
+# -- old ----
+# exporters:
+#   debug:
+#     verbosity: detailed
+# service:
+#   pipelines:
+#     metrics:
+#       receivers: [otlp]
+#       exporters: [debug]
+#     traces:
+#       receivers: [otlp]
+#       exporters: [debug]
+#     logs:
+#       receivers: [otlp]
+#       exporters: [debug]
+
+
+# exporters:
+#   prometheus:
+#     endpoint: "0.0.0.0:9090"
+
+#   logging:
+#     verbosity: normal
+
+# service:
+#   pipelines:
+#     traces:
+#       receivers: [otlp]
+#       exporters: [logging]
+
+#     metrics:
+#       receivers: [otlp]
+#       exporters: [prometheus, logging]
+
+#     logs:
+#       receivers: [otlp]
+#       exporters: [logging]

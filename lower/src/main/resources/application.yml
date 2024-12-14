@@ -1,0 +1,103 @@
+spring:
+  application:
+    name: m2
+
+#  sleuth:
+#    otel:
+#      config:
+#        trace-id-ratio-based: 1.0
+#      exporter:
+#        otlp:
+#          endpoint: http://opentelemetry-collector:4318
+
+  datasource:
+    url: jdbc:postgresql://db_lower_host:5435/db_lower
+#    url: jdbc:postgresql://localhost:5433/db_microservices
+    username: postgres
+    password: 1
+
+    flyway:
+      baselineOnMigrate: true
+
+
+management:
+  otlp:
+    tracing:
+      endpoint: http://opentelemetry-collector:4318/v1/traces
+    metrics:
+      enabled: true
+      export:
+        # тоже - слтишком точный эндопинт + registry норм указать
+        url: http://opentelemetry-collector:4318/v1/metrics
+        step: 5s
+
+
+## OpenTelemetry configuration
+#otel:
+#  sdk:
+#    autoconfigure: true
+#    logs:
+#      exporter: console # Optional, for viewing logs in the console
+#    metrics:
+#      exporter: prometheus    # Disable if metrics aren’t needed, or set to 'prometheus' if needed
+#
+#    traces:
+#      exporter: zipkin
+#  exporter:
+#    zipkin:
+#      endpoint: http://zipkin:9411/api/v2/spans  # Set Zipkin's API endpoint
+#      timeout: 1000ms    # Optional: Customize the timeout
+
+
+
+## ++ prometheus:
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: "*"
+#  endpoint:
+#    health:
+#      show-details: always
+#    prometheus:
+#      enabled: true  # Ensures that the Prometheus endpoint is enabled
+
+
+# ++
+#management:
+#  tracing:
+#    enabled: true        # Enable Spring Actuator tracing if needed
+#  otel:
+#    enabled: true        # Enable OpenTelemetry tracing
+#    exporter:
+#      otlp:
+#        enabled: false   # Disable OTLP if only Zipkin is required
+
+
+
+
+
+#otel:
+#  exporter:
+#    otlp:
+#      endpoint: http://opentelemetry-collector:4318
+#    zipkin:
+#      enabled: true
+#      endpoint: http://opentelemetry-collector:4318/v1/traces
+#  service:
+#    name: lower-app  # The name of your service (optional override for OTEL_SERVICE_NAME)
+#
+## Optional Jaeger configurations (if not fully using the OTEL environment variables)
+#management:
+#  tracing:
+#    sampling:
+#      probability: 1.0
+#    enabled: true
+#    exporter:
+#      zipkin:
+#        enabled: true
+#        endpoint: http://opentelemetry-collector:4318/v1/traces
+#
+#logging:
+#  level:
+#    io.opentelemetry: DEBUG  # Set debug level for detailed trace/log data
