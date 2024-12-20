@@ -1,6 +1,14 @@
 spring:
+
   application:
     name: m1
+
+  kafka:
+    bootstrap-servers: kafka:9093 # Kafka broker address
+    consumer:
+      group-id: my-group # Group ID for consumers
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
   datasource:
     url: jdbc:postgresql://db_upper_host:5433/db_upper
@@ -11,3 +19,6 @@ spring:
     flyway:
       baselineOnMigrate: true
 
+kafka:
+  topic:
+    name: quickstart-events

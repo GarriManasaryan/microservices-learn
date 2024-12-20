@@ -1,6 +1,17 @@
 spring:
+
   application:
     name: m1
+
+  kafka:
+    bootstrap-servers: kafka:9092 # Kafka broker address
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+#    consumer:
+#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      group-id: my-group # Group ID for consumers
 
   datasource:
     url: jdbc:postgresql://db_capitalize_host:5434/db_capitalize
@@ -10,6 +21,10 @@ spring:
 
     flyway:
       baselineOnMigrate: true
+
+kafka:
+  topic:
+    name: quickstart-events
 
 ## важно в конце добавлять, а не по середине - в середине мы обрываем spring конфиг
 #server:

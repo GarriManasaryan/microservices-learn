@@ -1,0 +1,24 @@
+# Stage 1: Build the application JAR using Gradle
+FROM gradle:8.11.1-jdk21-alpine AS builder
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy Gradle files and project source code into the container
+COPY capitalize/build.gradle capitalize/settings.gradle /app/
+COPY capitalize/src /app/src
+
+# Run the Gradle task to build the JAR and explicitly specify the output location
+RUN gradle bootJar --no-daemon && ls -la build/libs
+
+# Stage 2: Create the final runtime image
+FROM bellsoft/liberica-openjdk-debian:21
+
+# Copy the generated JAR file from the builder stage
+COPY --from=builder /app/output-docker/*.jar /app/capitalize.jar
+
+# Set the working directory for the runtime image
+WORKDIR /app
+
+# Set the entry point to run the application
+ENTRYPOINT ["java", "-jar", "capitalize.jar"]
