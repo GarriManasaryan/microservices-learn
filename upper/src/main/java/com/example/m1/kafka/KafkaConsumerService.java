@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class KafkaConsumerService {
 
-    @KafkaListener(topics = "quickstart-events", groupId = "my-group")
+    @KafkaListener(topics = "second-topic")
     public void consume(String message) {
         System.out.println("\n");
         System.out.println("Consumed message: " + message);

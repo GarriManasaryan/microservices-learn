@@ -13,18 +13,37 @@ spring:
 #      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 #      group-id: my-group # Group ID for consumers
 
-  datasource:
-    url: jdbc:postgresql://db_capitalize_host:5434/db_capitalize
-#    url: jdbc:postgresql://localhost:5433/db_microservices
-    username: postgres
-    password: 1
-
-    flyway:
-      baselineOnMigrate: true
+#  datasource:
+#    url: jdbc:postgresql://db_capitalize_host:5434/db_capitalize
+##    url: jdbc:postgresql://localhost:5433/db_microservices
+#    username: postgres
+#    password: 1
+#
+#    flyway:
+#      baselineOnMigrate: true
 
 kafka:
   topic:
-    name: quickstart-events
+    name: second-topic
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health, info
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    enable:
+      all: true
+
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
 
 ## важно в конце добавлять, а не по середине - в середине мы обрываем spring конфиг
 #server:

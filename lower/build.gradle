@@ -80,11 +80,8 @@ dependencies {
 //	implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender'
 
 
-
-
-	runtimeOnly 'org.flywaydb:flyway-core'
-	implementation 'org.postgresql:postgresql'
-//	implementation 'org.springframework.kafka:spring-kafka'
+//	runtimeOnly 'org.flywaydb:flyway-core'
+//	implementation 'org.postgresql:postgresql'
 	testImplementation 'org.assertj:assertj-core:3.23.1'
 
 //	implementation(platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom"))

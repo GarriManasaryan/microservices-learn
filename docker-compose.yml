@@ -120,93 +120,134 @@ services:
   #   networks:
   #     - my-net
 
-  kafka:
-    image: apache/kafka:3.9.0
-    container_name: kafka
-    ports:
-      - "9092:9092"
-    volumes:
-      - kafka_data:/var/lib/kafka/data
-    networks:
-      - my-net
-    # environment:
-    #   KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
-    #   KAFKA_LISTENER_MODE: "broker"
-    #   KAFKA_LISTENERS: kafka:9092
-    #   KAFKA_ADVERTISED_LISTENERS: kafka:9092
-    #   KAFKA_LISTENER_PORT: 9092
-    #   KAFKA_ADVERTISED_LISTENER_PORT: 9092
+  # kafka:
+  #   image: confluentinc/cp-kafka:7.5.0
+  #   container_name: kafka
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - kafka_data:/var/lib/kafka/data
+  #   networks:
+  #     - my-net
+  #   ports:
+  #     - "9092:9092"
+  #     - "9093:9093"
+  #   environment:
+  #     KAFKA_KRAFT_MODE: "true"  # This enables KRaft mode in Kafka.
+  #     KAFKA_PROCESS_ROLES: controller,broker  # Kafka acts as both broker and controller.
+  #     KAFKA_NODE_ID: 1  # A unique ID for this Kafka instance.
+  #     KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"  # Defines the controller voters.
+  #     KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  #     KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+  #     KAFKA_LOG_DIRS: /var/lib/kafka/data  # Where Kafka stores its logs.
+  #     KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"  # Kafka will automatically create topics if needed.
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # Since we’re running one broker, one replica is enough.
+  #     KAFKA_LOG_RETENTION_HOURS: 24  # Keep logs for 7 days.
+  #     KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0  # No delay for consumer rebalancing.
+  #     CLUSTER_ID: "NWjlCG2lTG6asGvYo3m-Mw"  # A unique ID for the Kafka cluster.
+      
+  # kafka-tools:
+  #   image: confluentinc/cp-kafka:7.5.0
+  #   container_name: kafka-tools
+  #   depends_on:
+  #     - kafka
+  #   networks:
+  #     - my-net
+  #   command: ["tail", "-f", "/dev/null"]
+
 
   # microservice 2
-  db-capitalize:
-    image: postgres:14.5
-    container_name: db_capitalize
-    hostname: db_capitalize_host
-    environment:
-      - POSTGRES_PASSWORD=1
-      - POSTGRES_USER=postgres
-    volumes:
-      - pg_capitalize:/var/lib/postgresql/data
-    expose:
-      - "5434"
-    ports:
-      - "5434:5434"
-    command: -p 5434
-    networks:
-      - my-net
-
   # PRODUCER
+  # db-capitalize:
+  #   image: postgres:14.5
+  #   container_name: db_capitalize
+  #   hostname: db_capitalize_host
+  #   environment:
+  #     - POSTGRES_PASSWORD=1
+  #     - POSTGRES_USER=postgres
+  #   volumes:
+  #     - pg_capitalize:/var/lib/postgresql/data
+  #   expose:
+  #     - "5434"
+  #   ports:
+  #     - "5434:5434"
+  #   command: -p 5434
+  #   networks:
+  #     - my-net
+
   backend-capitalize:
     hostname: backend-capitalize
-    depends_on:
-      - db-capitalize
     build:
       dockerfile: Dockerfile_capitalize.bk
     networks:
       - my-net
     ports:
-      - "8082:8080"
+      # именно на 8080, чтобы http://localhost:8080/actuator/prometheus работал
+      # те prometheus поднят на 9090, но и сам спринг должен отправлять свои метрики на адрес выше
+      - "8080:8080"
+  
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./capitalize/prometheus_config.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - my-net
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - my-net
+
 
   # microservice 1
-  db-upper:
-    image: postgres:14.5
-    container_name: db_upper
-    hostname: db_upper_host
-    environment:
-      - POSTGRES_PASSWORD=1
-      - POSTGRES_USER=postgres
+  # CONSUMER
+  # db-upper:
+  #   image: postgres:14.5
+  #   container_name: db_upper
+  #   hostname: db_upper_host
+  #   environment:
+  #     - POSTGRES_PASSWORD=1
+  #     - POSTGRES_USER=postgres
 
-    volumes:
-      - pg_upper:/var/lib/postgresql/data
+  #   volumes:
+  #     - pg_upper:/var/lib/postgresql/data
 
-    expose:
-      - "5433"
-    ports:
-      - "5433:5433"
-    command: -p 5433
-    networks:
-      - my-net
+  #   expose:
+  #     - "5433"
+  #   ports:
+  #     - "5433:5433"
+  #   command: -p 5433
+  #   networks:
+  #     - my-net
 
-  backend-upper:
-    hostname: backend-upper
-    depends_on:
-      - db-upper
-    build:
-      dockerfile: Dockerfile_upper.bk
-    ports:
-      - "8081:8080"
-    networks:
-      - my-net
+  # backend-upper:
+  #   hostname: backend-upper
+  #   build:
+  #     dockerfile: Dockerfile_upper.bk
+  #   ports:
+  #     - "8081:8080"
+  #   networks:
+  #     - my-net
 
   # frontend:
   #   depends_on:
   #     - backend
-
   #   build:
   #     dockerfile: Dockerfile.fk
   #   ports:
   #     - "3000:3000"
-
   #   stdin_open: true
   #   tty: true
   #   networks:

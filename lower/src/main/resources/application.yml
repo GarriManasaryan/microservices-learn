@@ -10,14 +10,14 @@ spring:
 #        otlp:
 #          endpoint: http://opentelemetry-collector:4318
 
-  datasource:
-    url: jdbc:postgresql://db_lower_host:5435/db_lower
-#    url: jdbc:postgresql://localhost:5433/db_microservices
-    username: postgres
-    password: 1
-
-    flyway:
-      baselineOnMigrate: true
+#  datasource:
+#    url: jdbc:postgresql://db_lower_host:5435/db_lower
+##    url: jdbc:postgresql://localhost:5433/db_microservices
+#    username: postgres
+#    password: 1
+#
+#    flyway:
+#      baselineOnMigrate: true
 
 
 management:
